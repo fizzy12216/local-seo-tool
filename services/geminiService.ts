@@ -2,10 +2,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserInput, SEOPlan } from "../types";
 
-// Always use the process.env.API_KEY directly as per SDK guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to get the AI instance, ensuring it uses the injected API key.
+const getAI = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API_KEY is not defined. Please set it in your environment variables.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const generateSEOPlan = async (input: UserInput): Promise<SEOPlan> => {
+  const ai = getAI();
+  
   const prompt = `
     You are an expert Local SEO strategist. Generate a full Local SEO content and optimization plan for the following business:
     Business Name: ${input.businessName}
@@ -24,7 +32,6 @@ export const generateSEOPlan = async (input: UserInput): Promise<SEOPlan> => {
        Ensure the Links section is extremely detailed, providing specific, high-value local outreach targets and entity-building strategies.
   `;
 
-  // Using simple string content for text-based tasks as recommended in SDK guidelines.
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: prompt,
@@ -115,7 +122,6 @@ export const generateSEOPlan = async (input: UserInput): Promise<SEOPlan> => {
   });
 
   try {
-    // response.text is a property containing the generated string.
     const text = response.text || "";
     return JSON.parse(text.trim());
   } catch (error) {
