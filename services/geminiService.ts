@@ -2,7 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserInput, SEOPlan } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+// Always use the process.env.API_KEY directly as per SDK guidelines.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateSEOPlan = async (input: UserInput): Promise<SEOPlan> => {
   const prompt = `
@@ -23,9 +24,10 @@ export const generateSEOPlan = async (input: UserInput): Promise<SEOPlan> => {
        Ensure the Links section is extremely detailed, providing specific, high-value local outreach targets and entity-building strategies.
   `;
 
+  // Using simple string content for text-based tasks as recommended in SDK guidelines.
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: [{ parts: [{ text: prompt }] }],
+    contents: prompt,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -113,7 +115,9 @@ export const generateSEOPlan = async (input: UserInput): Promise<SEOPlan> => {
   });
 
   try {
-    return JSON.parse(response.text);
+    // response.text is a property containing the generated string.
+    const text = response.text || "";
+    return JSON.parse(text.trim());
   } catch (error) {
     console.error("Failed to parse SEO plan response:", error);
     throw new Error("Invalid response format from Gemini API");
